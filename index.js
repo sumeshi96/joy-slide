@@ -21,8 +21,12 @@
     targetElement.insertAdjacentElement("afterbegin", deviceConnectButton);
 } ());
 
-//
+// Joy-Conを接続する
 const deviceConnectButton = document.getElementById("device_add_button");
 deviceConnectButton.addEventListener("click", async () => {
-    console.log("deviceConnectButton pushed!");
+    const devices = await navigator.hid.requestDevice({
+        filters: [{ vendorId: 0x057E }]
+    });
+
+    await devices[0].open();
 });
