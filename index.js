@@ -32,13 +32,15 @@ deviceConnectButton.addEventListener("click", async () => {
   const device = devices[0];
 
   await device.open();
-
+  //await device.sendReport(0x01, createQuery(0x03, 0x30));
   // ボタン入力を取得する
   device.addEventListener("inputreport", (event) => handleInputReport(event));
 });
 
+// 取得した情報を元にボタン入力を判定する
 const handleInputReport = (event) => {
   const data = new Uint8Array(event.data.buffer);
+  const { device } = event;
 
   const buttonMappings = {
     0: {
@@ -73,8 +75,71 @@ const handleInputReport = (event) => {
   for (const byteIndex in buttonMappings) {
     for (const [button, mask] of Object.entries(buttonMappings[byteIndex])) {
       if (data[byteIndex] & mask) {
-        console.log(`${button} button pressed!`);
+        pushedButtonEvent(button, device, event);
       }
     }
+  }
+};
+
+//ボタンに割り当てるキーボード
+const LEFT_ARROW_KEY = "ArrowLeft";
+const LEFT_ARROW_KEY_CODE = 37;
+const RIGHT_ARROW_KEY = "ArrowRight";
+const RIGHT_ARROW_KEY_CODE = 39;
+const ESC_KEY = "Esc";
+const ESC_KEY_CODE = 27;
+const F5_KEY = "F5";
+const F5_KEY_CODE = 116;
+const HOME_KEY = "Home";
+const HOME_KEY_CODE = 36;
+const END_KEY = "End";
+const END_KEY_CODE = 35;
+const F11_KEY = "F11";
+const F11_KEY_CODE = 122;
+
+const pressKey = (key, keyCode, isCtrlPressed) => {
+  const activeElement = document.activeElement;
+  const targetDocument =
+    activeElement.tagName === "IFRAME"
+      ? activeElement.contentDocument
+      : document;
+  ["keydown", "keyup"].forEach((typeArg) => {
+    targetDocument.body.dispatchEvent(
+      new KeyboardEvent(typeArg, {
+        key,
+        keyCode,
+        bubbles: true,
+        ctrlKey: isCtrlPressed,
+      })
+    );
+  });
+};
+
+// ボタンが押された時の処理
+const pushedButtonEvent = (button, device, event) => {
+  console.log(`${button} button pressed!`);
+  switch (button) {
+    case "A":
+      pressKey(RIGHT_ARROW_KEY, RIGHT_ARROW_KEY_CODE, false);
+      break;
+    case "B":
+      pressKey(END_KEY, END_KEY_CODE, false);
+      break;
+    case "X":
+      pressKey(HOME_KEY, HOME_KEY_CODE, false);
+      break;
+    case "Y":
+      pressKey(LEFT_ARROW_KEY, LEFT_ARROW_KEY_CODE, false);
+      break;
+    case "PLUS":
+      pressKey(F5_KEY, F5_KEY_CODE, true);
+      break;
+    case "HOME":
+      pressKey(ESC_KEY, ESC_KEY_CODE, false);
+      break;
+    case "ZR":
+      console.log("ZR pressed!");
+      pressKey(F11_KEY, F11_KEY_CODE, false);
+      break;
   }
 };
